@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
+  <DUT Name="udt_MH_Robot_Input" Id="{56fbe66c-3bdd-4f08-8665-958fe40a51be}">
+    <Declaration><![CDATA[TYPE udt_MH_Robot_Input :
+STRUCT
+	
+	Status              : WORD;
+	Time_Stamp          : DATE_AND_TIME;
+	Part                : udt_HDL_PartData;
+	Request	            : USINT;
+    RequestPartType	    : BOOL;
+    GateOpened	        : BOOL;
+    GateClosed	        : BOOL;
+    FixtureReady	    : BOOL;
+    RaiseEnable1	    : BOOL;
+    RaiseEnable2	    : BOOL;
+    ReduceEnable1	    : BOOL;
+    ReduceEnable2	    : BOOL;
+    PickJobAck	        : BOOL;
+    DropJobAck	        : BOOL;
+    Hold	            : BOOL;
+   Gripper1ReadyToClose : BOOL;
+   Gripper1ReadyToOpen	: BOOL;
+   Gripper2ReadyToClose	: BOOL;
+   Gripper2ReadyToOpen	: BOOL;
+   FeatureBit6	        : BOOL;
+   FeatureBit7	        : BOOL;
+
+
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

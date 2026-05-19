@@ -1,0 +1,457 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
+  <POU Name="Fixture2_Auto" Id="{a82e2368-fe83-4ae9-b429-de16baf1e0dd}" SpecialFunc="None">
+    <Declaration><![CDATA[PROGRAM Fixture2_Auto
+VAR
+	
+nState_Door    : INT; // 0: Idle, 10: Starting, 20: Rotating, 30: Stopping
+	
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[
+
+
+/////////////// OPERATOR LOAD PART FIX 2 ///////////////
+
+		IF Memory_DB.M_Auto_Active AND 
+		   Memory_DB.M_Power_On AND 
+		   Inputs.i_Front_Door_Up
+		   THEN   
+		IF Memory_DB.M_FX2_LOAD1 AND Memory_DB.M_Turntable_POS2_Reached AND Memory_DB.M_Fixture2_TR_POS1_Reached  THEN
+		  Inputs.i_FX2_PART_CONTROL_B1 := TRUE;
+		  Inputs.i_FX2_PART_CONTROL_B2 := TRUE;
+		  Inputs.i_FX2_PART_CONTROL_B3 := TRUE;
+		  Inputs.i_FX2_PART_CONTROL_B4 := TRUE;
+		  Inputs.i_FX2_PART_CONTROL_B5 := TRUE;
+		  Inputs.i_FX2_PART_CONTROL_B6 := TRUE;
+		  Inputs.i_FX2_PART_CONTROL_B7 := TRUE;
+		  Memory_DB.M_FX2_LOAD1_COMPLETED :=TRUE;
+		
+		ELSIF Memory_DB.M_Auto_Active AND Memory_DB.M_FX2_LOAD2 AND Memory_DB.M_Turntable_POS2_Reached AND Memory_DB.M_Fixture2_TR_POS2_Reached THEN
+		      Inputs.i_FX2_PART_CONTROL_B15 := TRUE;
+		      Inputs.i_FX2_PART_CONTROL_B16 := TRUE;
+		      Inputs.i_FX2_PART_CONTROL_B17 := TRUE;
+		      Inputs.i_FX2_PART_CONTROL_B18 := TRUE;
+		      Inputs.i_FX2_PART_CONTROL_B19 := TRUE;
+		      Inputs.i_FX2_PART_CONTROL_B20 := TRUE;
+		      Inputs.i_FX2_PART_CONTROL_B21 := TRUE;
+		      Memory_DB.M_FX2_LOAD2_COMPLETED :=TRUE;
+		
+		ELSIF Memory_DB.M_FX2_LOAD1_COMPLETED AND Memory_DB.M_FX2_LOAD2_COMPLETED THEN
+			
+			  Memory_DB.M_Fixture2_TR_Start :=TRUE;
+			
+		END_IF;
+		END_IF;
+		 IF 
+		   Memory_DB. M_FX2_All_Initialise THEN   
+		   Memory_DB.M_Fixture2_TR_Start := TRUE;
+	       Memory_DB.M_Fixture2_TR_POS1_CMD := TRUE;
+		   Memory_DB.M_Fixture2_TR_POS2_CMD := FALSE;
+		   
+		   
+		 END_IF
+//////////////////LODING SIDE DOOR & TRUNION CONTROL OPERATION/////////////////
+IF  Memory_DB.M_Auto_Active AND Memory_DB.M_Safety_Ok AND Memory_DB.M_Power_On  THEN
+	
+CASE nState_Door  OF
+    0: // Default Position1 of Door Open
+	IF Memory_DB.M_Turntable_POS2_Reached AND Memory_DB.M_Fixture2_TR_POS1_Reached THEN    
+		Memory_DB.M_FRONT_DOOR_Down	:=FALSE;
+		Memory_DB.M_FRONT_DOOR_UP	:=TRUE;
+		Memory_DB.M_R03_MH_Goto_Drop2:=FALSE;
+		nState_Door := 10;
+       END_IF 
+    10: // 1st Load completed and Door Close Command
+ 
+        IF Memory_DB.M_FX2_LOAD1_COMPLETED AND Memory_DB.M_FX2_Cycle_Start_PB AND Inputs.i_Front_Door_Up THEN
+		Memory_DB.M_FRONT_DOOR_Down	:=TRUE;
+		Memory_DB.M_FRONT_DOOR_UP	:=FALSE;
+
+            nState_Door := 20; // Trunion Move
+        END_IF
+		       
+    20: // Clamp Sequence at Trunion Pos1
+ 
+        IF Inputs.i_Front_Door_Down AND Memory_DB.M_Fixture2_TR_POS1_Reached THEN
+		Memory_DB.A_FX2_CC1_CLAMPING_UNIT1_3_WP:=TRUE;
+		Memory_DB.A_FX2_CC3_CLAMPING_UNIT3_3_WP:=TRUE;
+		Memory_DB.A_FX2_CC5_CLAMPING_UNIT5_1_WP:=TRUE;
+		Memory_DB.A_FX2_CC1_CLAMPING_UNIT1_3_HP:=FALSE;
+		Memory_DB.A_FX2_CC3_CLAMPING_UNIT3_3_HP:=FALSE;
+		Memory_DB.A_FX2_CC5_CLAMPING_UNIT5_1_HP:=FALSE;		
+
+         nState_Door := 30; // Error State
+        END_IF	
+
+        
+    30: // Trunion move to Position 2 for 2nd Load
+ 
+        IF Inputs.i_Front_Door_Down AND Inputs.i_FX2_CC1_Clamp_1_Sensor_WP AND 
+		Inputs.i_FX2_CC3_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC5_Clamp_1_Sensor_WP THEN
+		Memory_DB.M_Fixture2_TR_POS2_CMD:=TRUE;
+		Memory_DB.M_Fixture2_TR_POS1_CMD:=FALSE;
+
+            nState_Door := 40; // Error State
+        END_IF		
+        
+    40: // Door Open command for 2nd Load
+ 
+        IF Memory_DB.M_Fixture2_TR_POS2_Reached AND Inputs.i_Front_Door_Down THEN
+		Memory_DB.M_FRONT_DOOR_Down:=FALSE;
+		Memory_DB.M_FRONT_DOOR_UP  :=TRUE;
+
+            nState_Door := 50; // Error State
+        END_IF	
+        
+    50: // 2nd Load completed on Trunion & Door Close Command
+ 
+        IF Memory_DB.M_FX2_LOAD2_COMPLETED AND Memory_DB.M_FX2_Cycle_Start_PB AND Inputs.i_Front_Door_Up THEN
+		Memory_DB.M_FRONT_DOOR_Down      :=TRUE;
+		Memory_DB.M_FRONT_DOOR_Up        :=FALSE;
+
+            nState_Door := 60; // Error State
+        END_IF
+		
+    60: // Clamp Sequence at Trunion Pos1
+ 
+        IF Inputs.i_Front_Door_Down AND Memory_DB.M_Fixture2_TR_POS2_Reached THEN
+		Memory_DB.A_FX2_CC2_CLAMPING_UNIT2_3_WP:=TRUE;
+		Memory_DB.A_FX2_CC4_CLAMPING_UNIT4_3_WP:=TRUE;
+		Memory_DB.A_FX2_CC6_CLAMPING_UNIT6_1_WP:=TRUE;
+		Memory_DB.A_FX2_CC2_CLAMPING_UNIT2_3_HP:=FALSE;
+		Memory_DB.A_FX2_CC4_CLAMPING_UNIT4_3_HP:=FALSE;
+		Memory_DB.A_FX2_CC6_CLAMPING_UNIT6_1_HP:=FALSE;	
+
+         nState_Door := 70; // Error State
+        END_IF		
+        
+    70: // Move Trunion to Default/Pos1
+ 
+        IF Memory_DB.M_Fixture2_TR_Start AND Inputs.i_Front_Door_Down AND Memory_DB.M_Fixture2_TR_POS2_Reached AND
+		 Inputs.i_FX2_CC2_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC4_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC6_Clamp_1_Sensor_WP THEN
+		Memory_DB.M_Fixture2_TR_POS1_CMD:=TRUE;
+		Memory_DB.M_Fixture2_TR_POS2_CMD:=FALSE;
+
+            nState_Door := 80; // Error State
+        END_IF
+		
+    80: // Move TT Work position/Pos2
+ 
+        IF Memory_DB.M_FX2_LOAD1_COMPLETED AND Memory_DB.M_FX2_LOAD2_COMPLETED AND Inputs.i_Front_Door_Down AND Memory_DB.M_Fixture2_TR_POS1_Reached AND Memory_DB.M_Turntable_POS2_Reached 
+           AND Inputs.i_Rear_Door_Down AND Inputs.i_FX2_CC2_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC4_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC6_Clamp_1_Sensor_WP 
+           AND Memory_DB.M_R01_Home AND Memory_DB.M_R02_Home AND Memory_DB.M_R03_MH_AtHome THEN
+		   Memory_DB.M_Turntable_Start :=TRUE;
+		   Memory_DB.M_Turntable_POS1_CMD :=TRUE;
+		   Memory_DB.M_Turntable_POS2_CMD:=FALSE;
+           Memory_DB.M_FRONT_DOOR_Down    :=FALSE;
+		   
+            nState_Door := 90; // Error State
+        END_IF		
+
+	90: // Robot Weld CMD for First Weld
+ 
+       IF  Memory_DB.M_Fixture2_TR_POS1_Reached AND Memory_DB.M_Turntable_POS1_Reached 
+           AND Inputs.i_Rear_Door_Down AND Inputs.i_FX2_CC2_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC4_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC6_Clamp_1_Sensor_WP 
+           AND Memory_DB.M_R01_Home AND Memory_DB.M_R02_Home AND Memory_DB.M_R03_MH_AtHome THEN
+		   Memory_DB.M_R01_Weld_Start:=TRUE;
+		   Memory_DB.M_R02_Weld_Start:=TRUE;
+		  
+            nState_Door := 100; // Error State
+      	END_IF			
+		
+	100: // Trunnion move to POS2 for second Weld
+ 
+        IF Memory_DB.M_R01_Job_Done1 AND Memory_DB.M_R02_Job_Done1 AND Inputs.i_Rear_Door_Down AND Memory_DB.M_Fixture2_TR_POS1_Reached AND Memory_DB.M_Turntable_POS1_Reached AND Inputs.i_FX2_CC2_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC4_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC6_Clamp_1_Sensor_WP THEN
+		   Memory_DB.M_Fixture2_TR_POS1_CMD:=FALSE;
+		   Memory_DB.M_Fixture2_TR_POS2_CMD:=TRUE;
+		  
+
+            nState_Door := 110; // Error State
+        END_IF				
+		
+		
+	110: // Robot Weld CMD for Second Weld
+ 
+        IF  Inputs.i_Rear_Door_Down AND Memory_DB.M_Fixture2_TR_POS2_Reached  AND Memory_DB.M_Turntable_POS1_Reached  
+           AND Inputs.i_FX2_CC2_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC4_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC6_Clamp_1_Sensor_WP THEN
+		   Memory_DB.M_R01_Weld_Start:=TRUE;
+		   Memory_DB.M_R02_Weld_Start:=TRUE;
+		  
+            nState_Door := 120; // Error State
+        END_IF					
+		
+		
+	120: // Trunnion move to POS1 for Unload part
+ 
+        IF Memory_DB.M_R01_Job_Done1 AND Memory_DB.M_R02_Job_Done1 AND Memory_DB.M_R01_Job_Done2 AND Memory_DB.M_R02_Job_Done2 AND Inputs.i_Rear_Door_Down AND Memory_DB.M_Fixture2_TR_POS2_Reached AND Memory_DB.M_Turntable_POS1_Reached AND Inputs.i_FX2_CC2_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC4_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC6_Clamp_1_Sensor_WP THEN
+		   Memory_DB.M_Fixture2_TR_POS2_CMD :=FALSE;
+		   Memory_DB.M_Fixture2_TR_POS1_CMD :=TRUE;
+		   Memory_DB.M_R01_Weld_Start:=FALSE;
+		   Memory_DB.M_R02_Weld_Start:=FALSE;
+		   
+            nState_Door := 130; // Error State
+        END_IF					
+		
+			
+	130: // Rear Door Open
+ 
+        IF  Inputs.i_Rear_Door_Down AND Memory_DB.M_Fixture2_TR_POS1_Reached AND Memory_DB.M_Turntable_POS1_Reached AND Inputs.i_FX2_CC2_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC4_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC6_Clamp_1_Sensor_WP THEN
+		   Memory_DB.M_Rear_DOOR_Up      :=TRUE;
+		   Memory_DB.M_Rear_DOOR_Down    :=FALSE;
+		  
+		   
+            nState_Door := 140; // Error State
+        END_IF
+	
+		
+	140: // MH Robot Part Unload Command
+ 
+        IF Inputs.i_Rear_Door_Up AND Memory_DB.M_Fixture2_TR_POS1_Reached AND Memory_DB.M_Turntable_POS1_Reached AND Inputs.i_FX2_CC2_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC4_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC6_Clamp_1_Sensor_WP THEN
+		   Memory_DB.M_R03_MH_Cycle_Start   :=TRUE;
+		   Memory_DB.M_R03_MH_MovePounce    :=TRUE;
+		  
+		   
+            nState_Door := 150; // Error State
+        END_IF
+	
+	150: // MH Robot At Pounce and Fixture Clamp Open
+ 
+     IF Memory_DB.M_R03_MH_MovePounce AND Inputs.i_Rear_Door_Up AND Memory_DB.M_Fixture2_TR_POS1_Reached AND Memory_DB.M_Turntable_POS1_Reached AND Inputs.i_FX2_CC1_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC3_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC5_Clamp_1_Sensor_WP THEN
+		Memory_DB.A_FX2_CC1_CLAMPING_UNIT1_3_HP:=TRUE;
+		Memory_DB.A_FX2_CC3_CLAMPING_UNIT3_3_HP:=TRUE;
+		Memory_DB.A_FX2_CC5_CLAMPING_UNIT5_1_HP:=TRUE;
+		Memory_DB.A_FX2_CC1_CLAMPING_UNIT1_3_WP:=FALSE;
+		Memory_DB.A_FX2_CC3_CLAMPING_UNIT3_3_WP:=FALSE;
+		Memory_DB.A_FX2_CC5_CLAMPING_UNIT5_1_WP:=FALSE;	
+		  
+		   
+            nState_Door := 160; // Error State
+     END_IF
+	 
+	 
+	160: // MH Robot Part Pick1 Command
+ 
+        IF Inputs.i_Rear_Door_Up AND Memory_DB.M_Fixture2_TR_POS1_Reached AND Memory_DB.M_Turntable_POS1_Reached AND Inputs.i_FX2_CC1_Clamp_1_Sensor_HP AND Inputs.i_FX2_CC3_Clamp_1_Sensor_HP AND Inputs.i_FX2_CC5_Clamp_1_Sensor_HP THEN
+		   Memory_DB.M_R03_MH_Cycle_Start   :=FALSE;
+		   Memory_DB.M_R03_MH_MovePounce    :=FALSE;
+		  Memory_DB.M_R03_MH_Goto_Pick1     :=TRUE;
+		  Inputs.i_FX2_PART_CONTROL_B1 := FALSE;
+		  Inputs.i_FX2_PART_CONTROL_B2 := FALSE;
+		  Inputs.i_FX2_PART_CONTROL_B3 := FALSE;
+		  Inputs.i_FX2_PART_CONTROL_B4 := FALSE;
+		  Inputs.i_FX2_PART_CONTROL_B5 := FALSE;
+		  Inputs.i_FX2_PART_CONTROL_B6 := FALSE;
+		  Inputs.i_FX2_PART_CONTROL_B7 := FALSE;
+		   
+            nState_Door := 170; // Error State
+        END_IF	
+		
+		
+	170: // MH Robot Move to Paunce 
+ 
+        IF Inputs.i_Rear_Door_Up AND Memory_DB.M_Fixture2_TR_POS1_Reached AND Memory_DB.M_Turntable_POS1_Reached AND Inputs.i_FX2_CC2_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC4_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC6_Clamp_1_Sensor_WP THEN
+		  
+		   Memory_DB.M_R03_MH_MovePounce    :=TRUE;	  
+		   
+            nState_Door := 180; // Error State
+        END_IF		
+		
+	180: // Trunion rotate to Pos2
+ 
+        IF Inputs.i_Rear_Door_Up AND Memory_DB.M_R03_MH_Pick1_Done AND Memory_DB.M_Fixture2_TR_POS1_Reached AND Memory_DB.M_Turntable_POS1_Reached AND Inputs.i_FX2_CC2_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC4_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC6_Clamp_1_Sensor_WP THEN
+		   Memory_DB.M_Fixture2_TR_POS1_CMD:=FALSE;
+		   Memory_DB.M_Fixture2_TR_POS2_CMD:=TRUE;
+		    		   
+            nState_Door := 190; // Error State
+        END_IF		
+			
+	190: // Fixture clamp Open
+ 
+       IF Inputs.i_Rear_Door_Up AND Memory_DB.M_R03_MH_Pick1_Done AND Memory_DB.M_Fixture2_TR_POS2_Reached AND Memory_DB.M_Turntable_POS1_Reached AND Inputs.i_FX2_CC2_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC4_Clamp_1_Sensor_WP AND Inputs.i_FX2_CC6_Clamp_1_Sensor_WP THEN
+		Memory_DB.A_FX2_CC2_CLAMPING_UNIT2_3_HP:=TRUE;
+		Memory_DB.A_FX2_CC4_CLAMPING_UNIT4_3_HP:=TRUE;
+		Memory_DB.A_FX2_CC6_CLAMPING_UNIT6_1_HP:=TRUE;
+		Memory_DB.A_FX2_CC2_CLAMPING_UNIT2_3_WP:=FALSE;
+		Memory_DB.A_FX2_CC4_CLAMPING_UNIT4_3_WP:=FALSE;
+		Memory_DB.A_FX2_CC6_CLAMPING_UNIT6_1_WP:=FALSE;	
+		    		   
+            nState_Door := 200; // Error State
+       END_IF			
+		
+	  200: // MH Robot Part Pick2 Command
+ 
+       IF Inputs.i_Rear_Door_Up AND Memory_DB.M_R03_MH_Pick1_Done AND Memory_DB.M_Fixture2_TR_POS2_Reached AND Memory_DB.M_Turntable_POS1_Reached AND Inputs.i_FX2_CC2_Clamp_1_Sensor_HP AND Inputs.i_FX2_CC4_Clamp_1_Sensor_HP AND Inputs.i_FX2_CC6_Clamp_1_Sensor_HP THEN
+		  Memory_DB.M_R03_MH_MovePounce    :=FALSE;
+		  Memory_DB.M_R03_MH_Goto_Pick2     :=TRUE;
+		  Inputs.i_FX2_PART_CONTROL_B15 := FALSE;
+		  Inputs.i_FX2_PART_CONTROL_B16 := FALSE;
+		  Inputs.i_FX2_PART_CONTROL_B17 := FALSE;
+		  Inputs.i_FX2_PART_CONTROL_B18 := FALSE;
+		  Inputs.i_FX2_PART_CONTROL_B19 := FALSE;
+		  Inputs.i_FX2_PART_CONTROL_B20 := FALSE;
+		  Inputs.i_FX2_PART_CONTROL_B21 := FALSE;
+		    		   
+            nState_Door := 210; // Error State
+       END_IF
+	 
+	   210: // Trunion rotate to POS1  
+	   IF Inputs.i_Rear_Door_Up AND Memory_DB.M_R03_MH_Pick1_Done AND Memory_DB.M_Fixture2_TR_POS2_Reached AND Memory_DB.M_Turntable_POS1_Reached AND Inputs.i_FX2_CC2_Clamp_1_Sensor_HP AND Inputs.i_FX2_CC4_Clamp_1_Sensor_HP AND Inputs.i_FX2_CC6_Clamp_1_Sensor_HP THEN
+		  Memory_DB.M_Fixture2_TR_POS1_CMD := TRUE;
+		  Memory_DB.M_Fixture2_TR_POS2_CMD := FALSE; 
+		  
+		    		   
+            nState_Door := 220; // Error State
+       END_IF	 
+	   
+	 220: // Rear Door Down
+ 
+       IF Inputs.i_Rear_Door_Up AND Memory_DB.M_R03_MH_Pick1_Done AND Memory_DB.M_R03_MH_Pick2_Done AND Memory_DB.M_Fixture2_TR_POS1_Reached AND Memory_DB.M_Turntable_POS1_Reached THEN
+		   Memory_DB.M_Rear_DOOR_Down   :=TRUE;
+		   Memory_DB.M_Rear_DOOR_Up     :=FALSE;
+		  Memory_DB.M_R03_MH_MovePounce :=TRUE;
+		  Memory_DB.M_R01_Job_Done1     :=FALSE;   
+		  Memory_DB.M_R01_Job_Done2     :=FALSE;    
+          Memory_DB.M_R02_Job_Done1     :=FALSE;  
+		  Memory_DB.M_R02_Job_Done2     :=FALSE;   
+          Memory_DB.M_R03_MH_Goto_Pick1 :=FALSE; 
+		  Memory_DB.M_R03_MH_Goto_Pick2 :=FALSE;
+            nState_Door := 230; // Error State
+       END_IF	
+ 	
+	
+	    230: // Robot Go to Drop1 & Drop2
+ 
+       IF Inputs.i_Rear_Door_Down AND Memory_DB.M_R03_MH_Pick1_Done AND Memory_DB.M_R03_MH_Pick2_Done AND Memory_DB.M_Fixture2_TR_POS1_Reached AND Memory_DB.M_Turntable_POS1_Reached THEN
+		  
+		  Memory_DB.M_R03_MH_Goto_Drop1 :=TRUE;	    
+		  Memory_DB.M_R03_MH_MovePounce :=FALSE;  
+		   
+ 
+            nState_Door := 240; // Error State
+       END_IF
+	
+	   240: // Robot Go to Drop2 
+ 
+       IF Inputs.i_Rear_Door_Down AND Memory_DB.M_R03_MH_Pick1_Done AND Memory_DB.M_R03_MH_Pick2_Done AND Memory_DB.M_Fixture2_TR_POS1_Reached AND Memory_DB.M_Turntable_POS1_Reached THEN
+		  
+		  Memory_DB.M_R03_MH_Goto_Drop1 :=FALSE;
+		  Memory_DB.M_R03_MH_Goto_Drop2  :=TRUE;   
+		  Memory_DB.M_R03_MH_MovePounce :=FALSE;  
+		  
+ 
+            nState_Door := 250; // Error State
+       END_IF
+
+	 250: // TT Rotate to load position 
+ 
+       IF Memory_DB.M_Fixture2_TR_POS1_Reached AND Memory_DB.M_Turntable_POS2_Reached THEN
+		  	   
+ 
+            nState_Door := 0; // Error State
+       END_IF 
+	
+	
+	   
+END_CASE;
+END_IF;		
+
+
+	
+]]></ST>
+    </Implementation>
+    <LineIds Name="Fixture2_Auto">
+      <LineId Id="3" Count="9" />
+      <LineId Id="14" Count="25" />
+      <LineId Id="154" Count="0" />
+      <LineId Id="160" Count="1" />
+      <LineId Id="159" Count="0" />
+      <LineId Id="209" Count="1" />
+      <LineId Id="155" Count="0" />
+      <LineId Id="40" Count="4" />
+      <LineId Id="153" Count="0" />
+      <LineId Id="45" Count="2" />
+      <LineId Id="49" Count="78" />
+      <LineId Id="177" Count="0" />
+      <LineId Id="182" Count="0" />
+      <LineId Id="128" Count="0" />
+      <LineId Id="175" Count="0" />
+      <LineId Id="129" Count="1" />
+      <LineId Id="400" Count="0" />
+      <LineId Id="131" Count="1" />
+      <LineId Id="166" Count="0" />
+      <LineId Id="168" Count="1" />
+      <LineId Id="232" Count="1" />
+      <LineId Id="178" Count="0" />
+      <LineId Id="180" Count="1" />
+      <LineId Id="217" Count="0" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="133" Count="0" />
+      <LineId Id="167" Count="0" />
+      <LineId Id="189" Count="1" />
+      <LineId Id="218" Count="0" />
+      <LineId Id="193" Count="0" />
+      <LineId Id="198" Count="0" />
+      <LineId Id="195" Count="2" />
+      <LineId Id="183" Count="2" />
+      <LineId Id="199" Count="4" />
+      <LineId Id="208" Count="0" />
+      <LineId Id="205" Count="0" />
+      <LineId Id="207" Count="0" />
+      <LineId Id="186" Count="1" />
+      <LineId Id="243" Count="0" />
+      <LineId Id="235" Count="5" />
+      <LineId Id="369" Count="0" />
+      <LineId Id="244" Count="0" />
+      <LineId Id="242" Count="0" />
+      <LineId Id="234" Count="0" />
+      <LineId Id="188" Count="0" />
+      <LineId Id="247" Count="4" />
+      <LineId Id="256" Count="0" />
+      <LineId Id="253" Count="2" />
+      <LineId Id="245" Count="1" />
+      <LineId Id="259" Count="8" />
+      <LineId Id="258" Count="0" />
+      <LineId Id="257" Count="0" />
+      <LineId Id="278" Count="0" />
+      <LineId Id="271" Count="1" />
+      <LineId Id="279" Count="4" />
+      <LineId Id="273" Count="0" />
+      <LineId Id="275" Count="2" />
+      <LineId Id="268" Count="0" />
+      <LineId Id="292" Count="1" />
+      <LineId Id="284" Count="5" />
+      <LineId Id="300" Count="5" />
+      <LineId Id="299" Count="0" />
+      <LineId Id="290" Count="1" />
+      <LineId Id="269" Count="0" />
+      <LineId Id="321" Count="0" />
+      <LineId Id="294" Count="0" />
+      <LineId Id="306" Count="4" />
+      <LineId Id="319" Count="1" />
+      <LineId Id="295" Count="1" />
+      <LineId Id="322" Count="3" />
+      <LineId Id="330" Count="0" />
+      <LineId Id="326" Count="0" />
+      <LineId Id="328" Count="1" />
+      <LineId Id="297" Count="0" />
+      <LineId Id="333" Count="2" />
+      <LineId Id="340" Count="4" />
+      <LineId Id="336" Count="0" />
+      <LineId Id="338" Count="1" />
+      <LineId Id="298" Count="0" />
+      <LineId Id="331" Count="0" />
+      <LineId Id="347" Count="2" />
+      <LineId Id="358" Count="7" />
+      <LineId Id="355" Count="2" />
+      <LineId Id="345" Count="0" />
+      <LineId Id="401" Count="54" />
+      <LineId Id="346" Count="0" />
+      <LineId Id="393" Count="0" />
+      <LineId Id="367" Count="1" />
+      <LineId Id="134" Count="4" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

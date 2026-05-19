@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
+  <POU Name="MHRobot" Id="{c7c042a7-a6de-4d5e-8ca9-80c4266ef516}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC MHRobot
+VAR_INPUT
+	
+	// --- Mode & Power (From previous logic) ---
+    bPowerActive    : BOOL;
+    bAutoActive     : BOOL;
+	bStartCycle       : BOOL; // Trigger for the sequence
+	
+	 // --- Robot Command Signals (Outputs to Robot) ---
+    bRobot_MovePounce : BOOL;
+    bRobot_Pick1      : BOOL;
+    bRobot_Pick2      : BOOL;
+    bRobot_Drop1      : BOOL;
+    bRobot_Drop2      : BOOL;
+	
+END_VAR
+VAR_OUTPUT
+	
+ // --- Simulated Robot Status (Inputs from Robot) ---
+     ENO 			  : BOOL;	
+	bRobotInHome      : BOOL := TRUE;
+    bRobot_InPounce   : BOOL;
+    bRobot_Pick1Done  : BOOL;
+    bRobot_Pick2Done  : BOOL;
+    bRobot_Drop1Done  : BOOL;
+    bRobot_Drop2Done  : BOOL;
+	
+END_VAR
+VAR
+// --- Sequence Control ---
+    iStep             : INT := 0;
+    tSimTimer         : TON; // Used to simulate robot movement time	
+
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// --- ROBOT SIDE SIMULATION ---
+// This block simulates the robot moving for 5 second before sending a "Done" signal
+tSimTimer(IN := (bRobot_MovePounce OR bRobot_Pick1 OR bRobot_Pick2 OR bRobot_Drop1 OR bRobot_Drop2), PT := T#5S);
+
+IF tSimTimer.Q THEN
+    IF bRobot_MovePounce THEN bRobot_InPounce  := TRUE;  END_IF
+    IF bRobot_Pick1      THEN bRobot_Pick1Done := TRUE;  END_IF
+    IF bRobot_Pick2      THEN bRobot_Pick2Done := TRUE;  END_IF
+    IF bRobot_Drop1      THEN bRobot_Drop1Done := TRUE;  END_IF
+    IF bRobot_Drop2      THEN bRobot_Drop2Done := TRUE;  END_IF
+END_IF
+
+// Reset Done signals if commands are dropped
+IF NOT bRobot_MovePounce THEN bRobot_InPounce  := FALSE; END_IF
+// ... (Repeat reset for other signals)
+
+// --- MAIN SEQUENCE ---
+IF NOT bPowerActive OR NOT bAutoActive THEN
+    iStep := 0; // Reset sequence if not in Auto or Power lost
+ELSE
+    CASE iStep OF
+        0: // IDLE: Wait for Start
+		    bRobotInHome     := TRUE;
+		    bRobot_Pick1Done := FALSE;
+			bRobot_Pick2Done := FALSE;
+			bRobot_Drop1Done := FALSE;
+			bRobot_Drop2Done := FALSE;
+            IF bStartCycle THEN
+			   bRobotInHome := FALSE;
+                iStep := 10;
+            END_IF
+
+        10: // MOVE TO POUNCE (Pre-position)
+            bRobot_MovePounce := TRUE;
+            IF bRobot_InPounce THEN
+                bRobot_MovePounce := FALSE;
+                iStep := 20;
+            END_IF
+
+        20: // PICK 1
+            bRobot_Pick1 := TRUE;
+            IF bRobot_Pick1Done THEN
+                bRobot_Pick1 := FALSE;
+                iStep := 30;
+            END_IF
+
+        30: // PICK 2
+            bRobot_Pick2 := TRUE;
+            IF bRobot_Pick2Done THEN
+                bRobot_Pick2 := FALSE;
+                iStep := 40;
+            END_IF
+
+        40: // RETURN TO POUNCE (Intermediate)
+            bRobot_MovePounce := TRUE;
+            IF bRobot_InPounce THEN
+                bRobot_MovePounce := FALSE;
+                iStep := 50;
+            END_IF
+
+        50: // DROP 1
+            bRobot_Drop1 := TRUE;
+            IF bRobot_Drop1Done THEN
+                bRobot_Drop1 := FALSE;
+                iStep := 60;
+            END_IF
+
+        60: // DROP 2
+            bRobot_Drop2 := TRUE;
+            IF bRobot_Drop2Done THEN
+                bRobot_Drop2 := FALSE;
+                iStep := 70;
+            END_IF
+
+        70: // SEQUENCE COMPLETE
+            iStep := 0; // Loop back or stop		
+			
+    END_CASE
+END_IF
+]]></ST>
+    </Implementation>
+    <LineIds Name="MHRobot">
+      <LineId Id="100" Count="21" />
+      <LineId Id="219" Count="0" />
+      <LineId Id="216" Count="2" />
+      <LineId Id="215" Count="0" />
+      <LineId Id="122" Count="0" />
+      <LineId Id="175" Count="0" />
+      <LineId Id="123" Count="46" />
+      <LineId Id="213" Count="0" />
+      <LineId Id="170" Count="1" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

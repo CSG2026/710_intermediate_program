@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
+  <GVL Name="Outputs" Id="{3206d77a-9559-40ba-b41b-e4d3359e4342}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+
+ // Fixture 1 Outputs
+	o_FX1_CC1_CLAMPING_UNIT1_3_WP : BOOL;
+	o_FX1_CC1_CLAMPING_UNIT1_3_HP : BOOL;
+	o_FX1_CC2_CLAMPING_UNIT2_3_WP : BOOL;
+	o_FX1_CC2_CLAMPING_UNIT2_3_HP : BOOL;
+	o_FX1_CC3_CLAMPING_UNIT3_3_WP : BOOL;
+	o_FX1_CC3_CLAMPING_UNIT3_3_HP : BOOL;
+	o_FX1_CC4_CLAMPING_UNIT4_3_WP : BOOL;
+	o_FX1_CC4_CLAMPING_UNIT4_3_HP : BOOL;
+	o_FX1_CC5_CLAMPING_UNIT5_1_WP : BOOL;
+	o_FX1_CC5_CLAMPING_UNIT5_1_HP : BOOL;
+	o_FX1_CC6_CLAMPING_UNIT6_1_WP : BOOL;
+	o_FX1_CC6_CLAMPING_UNIT6_1_HP : BOOL;
+	
+	// Fixture 2 Outputs
+	o_FX2_CC1_CLAMPING_UNIT1_3_WP : BOOL;
+	o_FX2_CC1_CLAMPING_UNIT1_3_HP : BOOL;
+	o_FX2_CC2_CLAMPING_UNIT2_3_WP : BOOL;
+	o_FX2_CC2_CLAMPING_UNIT2_3_HP : BOOL;
+	o_FX2_CC3_CLAMPING_UNIT3_3_WP : BOOL;
+	o_FX2_CC3_CLAMPING_UNIT3_3_HP : BOOL;
+	o_FX2_CC4_CLAMPING_UNIT4_3_WP : BOOL;
+	o_FX2_CC4_CLAMPING_UNIT4_3_HP : BOOL;
+	o_FX2_CC5_CLAMPING_UNIT5_1_WP : BOOL;
+	o_FX2_CC5_CLAMPING_UNIT5_1_HP : BOOL;
+	o_FX2_CC6_CLAMPING_UNIT6_1_WP : BOOL;
+	o_FX2_CC6_CLAMPING_UNIT6_1_HP : BOOL;
+	
+	
+	o_FRONT_DOOR_UP           : BOOL;
+    o_FRONT_DOOR_DOWN         : BOOL;
+	o_REAR_DOOR_UP            : BOOL;
+    o_REAR_DOOR_DOWN          : BOOL;
+	
+	
+	o_Fixture1_TR_Start       : BOOL;
+	o_Fixture1_TR_FWD         : BOOL;
+	o_Fixture1_TR_REV         : BOOL;
+	o_Fixture2_TR_Start       : BOOL;
+	o_Fixture2_TR_FWD         : BOOL;
+	o_Fixture2_TR_REV         : BOOL;
+	
+	o_Turntable_Start         : BOOL;
+	o_Turntable_FWD           : BOOL;
+	o_Turntable_REV           : BOOL;
+	
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

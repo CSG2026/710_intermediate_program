@@ -1,0 +1,135 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
+  <GVL Name="Memory_DB" Id="{bf9a8e60-94bf-48be-9318-80bc80477e33}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	
+// Fixture 1 Memery
+	M_FX1_CC1_CLAMPING_UNIT1_3_WP : BOOL;
+	M_FX1_CC1_CLAMPING_UNIT1_3_HP : BOOL;
+	M_FX1_CC2_CLAMPING_UNIT2_3_WP : BOOL;
+	M_FX1_CC2_CLAMPING_UNIT2_3_HP : BOOL;
+	M_FX1_CC3_CLAMPING_UNIT3_3_WP : BOOL;
+	M_FX1_CC3_CLAMPING_UNIT3_3_HP : BOOL;
+	M_FX1_CC4_CLAMPING_UNIT4_3_WP : BOOL;
+	M_FX1_CC4_CLAMPING_UNIT4_3_HP : BOOL;
+	M_FX1_CC5_CLAMPING_UNIT5_1_WP : BOOL;
+	M_FX1_CC5_CLAMPING_UNIT5_1_HP : BOOL;
+	M_FX1_CC6_CLAMPING_UNIT6_1_WP : BOOL;
+	M_FX1_CC6_CLAMPING_UNIT6_1_HP : BOOL;
+	
+	A_FX1_CC1_CLAMPING_UNIT1_3_WP : BOOL;
+	A_FX1_CC1_CLAMPING_UNIT1_3_HP : BOOL;
+	A_FX1_CC2_CLAMPING_UNIT2_3_WP : BOOL;
+	A_FX1_CC2_CLAMPING_UNIT2_3_HP : BOOL;
+	A_FX1_CC3_CLAMPING_UNIT3_3_WP : BOOL;
+	A_FX1_CC3_CLAMPING_UNIT3_3_HP : BOOL;
+	A_FX1_CC4_CLAMPING_UNIT4_3_WP : BOOL;
+	A_FX1_CC4_CLAMPING_UNIT4_3_HP : BOOL;
+	A_FX1_CC5_CLAMPING_UNIT5_1_WP : BOOL;
+	A_FX1_CC5_CLAMPING_UNIT5_1_HP : BOOL;
+	A_FX1_CC6_CLAMPING_UNIT6_1_WP : BOOL;
+	A_FX1_CC6_CLAMPING_UNIT6_1_HP : BOOL;
+	
+	// Fixture 2 Memery
+	M_FX2_CC1_CLAMPING_UNIT1_3_WP : BOOL;
+	M_FX2_CC1_CLAMPING_UNIT1_3_HP : BOOL;
+	M_FX2_CC2_CLAMPING_UNIT2_3_WP : BOOL;
+	M_FX2_CC2_CLAMPING_UNIT2_3_HP : BOOL;
+	M_FX2_CC3_CLAMPING_UNIT3_3_WP : BOOL;
+	M_FX2_CC3_CLAMPING_UNIT3_3_HP : BOOL;
+	M_FX2_CC4_CLAMPING_UNIT4_3_WP : BOOL;
+	M_FX2_CC4_CLAMPING_UNIT4_3_HP : BOOL;
+	M_FX2_CC5_CLAMPING_UNIT5_1_WP : BOOL;
+	M_FX2_CC5_CLAMPING_UNIT5_1_HP : BOOL;
+	M_FX2_CC6_CLAMPING_UNIT6_1_WP : BOOL;
+	M_FX2_CC6_CLAMPING_UNIT6_1_HP : BOOL;
+	
+	A_FX2_CC1_CLAMPING_UNIT1_3_WP : BOOL;
+	A_FX2_CC1_CLAMPING_UNIT1_3_HP : BOOL;
+	A_FX2_CC2_CLAMPING_UNIT2_3_WP : BOOL;
+	A_FX2_CC2_CLAMPING_UNIT2_3_HP : BOOL;
+	A_FX2_CC3_CLAMPING_UNIT3_3_WP : BOOL;
+	A_FX2_CC3_CLAMPING_UNIT3_3_HP : BOOL;
+	A_FX2_CC4_CLAMPING_UNIT4_3_WP : BOOL;
+	A_FX2_CC4_CLAMPING_UNIT4_3_HP : BOOL;
+	A_FX2_CC5_CLAMPING_UNIT5_1_WP : BOOL;
+	A_FX2_CC5_CLAMPING_UNIT5_1_HP : BOOL;
+	A_FX2_CC6_CLAMPING_UNIT6_1_WP : BOOL;
+	A_FX2_CC6_CLAMPING_UNIT6_1_HP : BOOL;
+	
+	
+	M_FX1_Load1               : BOOL;
+	M_FX1_Load1_Completed     : BOOL;
+	M_FX1_Load2               : BOOL;
+	M_FX1_Load2_Completed     : BOOL;
+	M_FX1_All_Initialise      : BOOL;
+	M_FX1_Cycle_Start_PB      : BOOL;
+	M_FX2_Load1               : BOOL;
+	M_FX2_Load1_Completed     : BOOL;
+	M_FX2_Load2               : BOOL;
+	M_FX2_Load2_Completed     : BOOL;
+	M_FX2_All_Initialise      : BOOL;
+	M_FX2_Cycle_Start_PB      : BOOL;
+	
+	M_Safety_Ok               : BOOL;
+	M_Power_On                : BOOL;
+	M_Manual_Active           : BOOL;
+	M_Auto_Active             : BOOL;
+	
+	M_FRONT_DOOR_UP           : BOOL;
+    M_FRONT_DOOR_DOWN         : BOOL;
+	M_REAR_DOOR_UP            : BOOL;
+    M_REAR_DOOR_DOWN          : BOOL;
+	
+	M_Fixture1_TR_Start        : BOOL;
+	M_Fixture1_TR_POS1_CMD     : BOOL;
+	M_Fixture1_TR_POS2_CMD     : BOOL;
+	M_Fixture1_TR_POS1_Reached : BOOL;
+	M_Fixture1_TR_POS2_Reached : BOOL;
+	
+	M_Fixture2_TR_Start        : BOOL;
+	M_Fixture2_TR_POS1_CMD     : BOOL;
+	M_Fixture2_TR_POS2_CMD     : BOOL;
+	M_Fixture2_TR_POS1_Reached : BOOL;
+	M_Fixture2_TR_POS2_Reached : BOOL;
+	
+	M_Turntable_Start          : BOOL;
+	M_Turntable_POS1_CMD       : BOOL;
+	M_Turntable_POS2_CMD       : BOOL;
+	M_Turntable_POS1_Reached   : BOOL;
+	M_Turntable_POS2_Reached   : BOOL;
+	
+	M_R01_Weld_Start           : BOOL;
+	M_R01_Home                 : BOOL;
+	M_R01_Busy                 : BOOL;
+	M_R01_Abort                : BOOL;
+	M_R01_Job_Pulse            : BOOL;
+    M_R01_Job_Done1            : BOOL;
+	M_R01_Job_Done2            : BOOL;
+	
+	M_R02_Weld_Start           : BOOL;
+	M_R02_Home                 : BOOL;
+	M_R02_Busy                 : BOOL;
+	M_R02_Abort                : BOOL;
+	M_R02_Job_Pulse            : BOOL;
+    M_R02_Job_Done1            : BOOL;
+	M_R02_Job_Done2            : BOOL;
+	 
+	M_R03_MH_Cycle_Start       : BOOL;
+	M_R03_MH_MovePounce        : BOOL;
+	M_R03_MH_Goto_Pick1        : BOOL;
+	M_R03_MH_Goto_Pick2        : BOOL;
+	M_R03_MH_Goto_Drop1        : BOOL;
+	M_R03_MH_Goto_Drop2        : BOOL;
+	
+	M_R03_MH_AtHome            : BOOL;
+	M_R03_MH_AtPounce          : BOOL;
+	M_R03_MH_Pick1_Done        : BOOL;
+	M_R03_MH_Pick2_Done        : BOOL;
+	M_R03_MH_Drop1_Done        : BOOL;
+	M_R03_MH_Drop2_Done        : BOOL;
+	
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

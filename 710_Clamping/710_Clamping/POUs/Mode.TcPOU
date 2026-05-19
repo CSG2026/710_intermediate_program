@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
+  <POU Name="Mode" Id="{0eecc834-d3f2-4530-b628-a913003040be}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC Mode
+VAR_INPUT
+	 // --- Inputs (HMI or Physical) ---
+    bPowerBtn       : BOOL;    // Main Power Toggle
+    bSafetyOK       : BOOL;    // Global Safety Signal
+    nModeSelect     : INT;     // 0:Off, 1:Manual, 2:Auto
+  
+END_VAR
+VAR_OUTPUT
+	
+	// --- Outputs (Physical or HMI Status) ---
+	ENO             : BOOL;
+	bPowerReady     : BOOL;    // Power stage is energized
+    bManualActive   : BOOL;    // Manual mode is live
+    bAutoActive     : BOOL;    // Auto sequence is live
+    
+	
+	
+END_VAR
+VAR
+ // --- Internal Status ---
+    bSystemError    : BOOL;    // Power-up failure or safety trip
+    nStatePower     : INT;     // State machine for power-up	
+	 // --- Timers ---
+    tPowerTimer     : TON;     // Simulation for contactors
+	
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// 1. SAFETY INTERLOCK
+// If safety trips, everything stops immediately
+IF NOT bSafetyOK THEN
+    bPowerReady   := FALSE;
+    bManualActive := FALSE;
+    bAutoActive   := FALSE;
+    nStatePower   := 0;
+    bSystemError  := TRUE;
+END_IF
+
+// 2. POWER ON STATE MACHINE
+CASE nStatePower OF
+    0: // IDLE: Waiting for Power Button
+        IF bPowerBtn AND bSafetyOK THEN
+            nStatePower := 10;
+        END_IF
+        
+    10: // ENERGIZING: Waiting for hardware feedback
+        tPowerTimer(IN := TRUE, PT := T#1.5S);
+        IF tPowerTimer.Q THEN
+            tPowerTimer(IN := FALSE);
+            bPowerReady := TRUE;
+            bSystemError := FALSE;
+            nStatePower := 20;
+        END_IF
+        
+    20: // POWER READY: Monitoring
+        IF NOT bPowerBtn OR NOT bSafetyOK THEN
+            bPowerReady := FALSE;
+            nStatePower := 0;
+        END_IF
+END_CASE
+
+// 3. MODE SELECTION & OUTPUTS
+// Active outputs are ONLY possible if bPowerReady is TRUE
+IF bPowerReady THEN
+    
+    // Mode Logic
+    CASE nModeSelect OF
+        1: // Manual Selected
+            bManualActive := TRUE;
+            bAutoActive   := FALSE;
+            
+        2: // Auto Selected
+            bManualActive := FALSE;
+            bAutoActive   := TRUE;
+            
+        ELSE // Off or Invalid
+            bManualActive := FALSE;
+            bAutoActive   := FALSE;
+    END_CASE
+    
+ELSE
+    // Force all active outputs OFF if power is lost
+    bManualActive := FALSE;
+    bAutoActive   := FALSE;
+END_IF
+]]></ST>
+    </Implementation>
+    <LineIds Name="Mode">
+      <LineId Id="99" Count="56" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

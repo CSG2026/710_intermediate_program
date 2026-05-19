@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
+  <DUT Name="udt_MH_Robot_Output" Id="{05f40605-98eb-40d6-8428-f521362a2a3f}">
+    <Declaration><![CDATA[TYPE udt_MH_Robot_Output :
+STRUCT
+	
+Status	            : WORD;
+Part	            : udt_HDL_PartData;
+GateOpenRequest	    : BOOL;
+GateCloseRequest    : BOOL;
+PickJobProceed	    : BOOL;
+DropJobProceed	    : BOOL;
+RaiseFinished1	    : BOOL;
+RaiseFinished2	    : BOOL;
+ReduceFinished1	    : BOOL;
+ReduceFinished2	    : BOOL;
+PickJobOK	        : BOOL;
+DropJobOK	        : BOOL;
+InArea	            : BOOL;
+PickDropProceed	    : BOOL;
+Gripper1ClosedAck   : BOOL;
+Gripper1OpenedAck   : BOOL;
+Gripper2ClosedAck   : BOOL;
+Gripper2OpenedAck   : BOOL;
+FeatureBit6	        : BOOL;
+FeatureBit7	        : BOOL;
+PickEnable	        : BOOL;
+DropEnable	        : BOOL;
+Varient	            : USINT;
+activeCell	        : USINT;
+Cooling_Time_Buffer : DINT;
+FB_Cooling_Time     : DINT;
+
+
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

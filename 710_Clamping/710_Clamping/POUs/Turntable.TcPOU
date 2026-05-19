@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
+  <POU Name="Turntable" Id="{dcc122c2-501c-416c-a8d2-b2f3bfa08fc9}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC Turntable
+VAR_INPUT
+	EN : BOOL;
+	bStart_Cond     : BOOL;     // Start rotation command
+	bMovetoPos1 	: BOOL;   // Move to position 1 / default postion
+	bMovetoPos2 	: BOOL;   // Move to position 1
+    bPos1_Sen_FB    : BOOL;     // Proximity sensor for position 
+    bPos2_Sen_FB    : BOOL;     // Proximity sensor for position  
+  	Reset		    : BOOL;
+END_VAR
+
+VAR_OUTPUT
+ ENO 			: BOOL;	
+ bMotorRun   	: BOOL;     // Command to the motor/drive
+ bMotor_FWDCMD  : BOOL;     // Motor Forward Command
+ bMotor_REVCMD  : BOOL;     // Motor Reverse Command
+Pos1_Reached 	: BOOL;   // Default position reached memory
+Pos2_Reached	:BOOL;   // 2nd position reached memory
+	
+
+END_VAR
+
+VAR	
+    nState          : INT; // 0: Idle, 10: Starting, 20: Rotating, 30: Stopping
+    fbTimeout       : TON;      // Safety timeout timer
+	sAlarm          : STRING;   // Error message
+
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE nState OF
+    0: // IDLE - Default Position1
+	 
+		IF bMovetoPos2 AND NOT bMovetoPos1 THEN
+			nState := 10;
+		ELSIF bMovetoPos1 AND NOT bMovetoPos2 THEN
+			nState := 30;
+		END_IF;
+
+        
+    10: // Move to 2nd position
+        bMotor_REVCMD  := FALSE;
+        bMotor_FWDCMD := TRUE;
+        
+        IF Pos2_Reached THEN
+            nState := 0;
+			bMotor_FWDCMD := FALSE;
+        ELSIF fbTimeout.Q THEN
+            sAlarm := 'Error: Pos2 Timeout';
+            nState := 99; // Error State
+        END_IF
+        
+        
+    30: // Move to 1st position
+        bMotor_FWDCMD := FALSE;
+        bMotor_revCMD  := TRUE;
+        
+        IF Pos1_Reached THEN
+            nState := 0;
+			bMotor_REVCMD := FALSE;
+        ELSIF fbTimeout.Q THEN
+            sAlarm := 'Error: Pos1 Timeout';
+            nState := 99;
+        END_IF
+		
+	99: // ERROR STATE
+        bMotor_FWDCMD := FALSE;
+        bMotor_revCMD  := FALSE; // De-energize for safety
+        IF NOT bMovetoPos2 AND NOT bMovetoPos1 THEN
+            nState := 0; // Reset after clearing request
+        END_IF
+
+ END_CASE
+
+
+IF NOT bStart_Cond  THEN
+	    bMotor_FWDCMD := FALSE;
+        bMotor_revCMD  := FALSE;
+END_IF;
+
+/////// ERROR ACKNOWLEDGE/////////////////
+
+IF reset THEN
+	sAlarm := '';
+	
+	END_IF;
+
+////MOTOR RUN COMMANE OUTPUT/////////////
+IF bMotor_FWDCMD OR bMotor_REVCMD THEN
+	bMotorRun:= TRUE;
+	ELSE 
+		bMotorRun:= FALSE;
+	END_IF
+
+/// POSITION REACHED MEMORY FIRE ////////
+IF bPos1_Sen_FB AND bMotor_REVCMD THEN
+Pos1_Reached:= TRUE;
+ELSIF bMotor_fwdCMD THEN
+Pos1_Reached:= FALSE;
+END_IF;
+
+/// POSITION REACHED MEMORY FIRE ////////
+IF bPos2_Sen_FB AND bMotor_fwdCMD THEN
+Pos2_Reached:= TRUE;
+ELSIF bMotor_revCMD THEN
+Pos2_Reached:= FALSE;
+END_IF;
+
+]]></ST>
+    </Implementation>
+    <LineIds Name="Turntable">
+      <LineId Id="3" Count="77" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

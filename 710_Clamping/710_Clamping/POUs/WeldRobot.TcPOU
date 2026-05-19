@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.16">
+  <POU Name="WeldRobot" Id="{32a74fb2-7d8b-4951-9238-89af33b56a3d}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC WeldRobot
+VAR_INPUT
+// Control Signals
+    bStartCycle     : BOOL;         // Trigger from HMI/PLC
+    bAbort          : BOOL;         // Emergency abort
+      
+     
+
+END_VAR
+VAR_OUTPUT
+	
+ // Simulated Robot Feedback (Internal Simulation)
+     ENO 			: BOOL;	
+    bRobotInHome    : BOOL := TRUE;
+    bRobotInPos     : BOOL;
+    bCycleDone      : BOOL;
+	
+END_VAR
+VAR
+ // Timers for Simulation
+    tMoveTimer      : TON;          // Simulates travel time
+    tWeldTimer      : TON;          // Simulates welding duration
+    tArcDelay       : TON;          // Simulates arc ignition delay	 
+    bArcEstablished : BOOL;
+	 // State Machine
+    nState          : INT := 0;     // 0:Idle, 10:Move, 20:Weld, 30:Return
+    
+	
+
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// --- STATE MACHINE LOGIC ---
+CASE nState OF
+    0: // IDLE: Wait for Start Signal
+        bCycleDone := FALSE;
+        IF bStartCycle THEN
+            bRobotInHome := FALSE;
+            nState := 10;
+        END_IF
+
+    10: // MOVE TO TARGET: Simulate travel time (3 seconds)
+        tMoveTimer(IN := TRUE, PT := T#3S);
+        IF tMoveTimer.Q THEN
+            tMoveTimer(IN := FALSE); // Reset for next use
+            bRobotInPos := TRUE;
+            nState := 20;
+        END_IF
+
+    20: // WELDING: Simulate Arc Start delay and then Weld duration
+        tArcDelay(IN := TRUE, PT := T#500MS);
+        IF tArcDelay.Q THEN
+            bArcEstablished := TRUE;
+            tWeldTimer(IN := TRUE, PT := T#5S); // 5 second weld
+        END_IF
+        
+        IF tWeldTimer.Q THEN
+            // Weld Finished
+            tArcDelay(IN := FALSE);
+            tWeldTimer(IN := FALSE);
+            bArcEstablished := FALSE;
+            bRobotInPos := FALSE;
+            nState := 30;
+        END_IF
+
+    30: // RETURN: Move back to Home (3 seconds)
+        tMoveTimer(IN := TRUE, PT := T#6S);
+        IF tMoveTimer.Q THEN
+            tMoveTimer(IN := FALSE);
+			bCycleDone := TRUE;
+            bRobotInHome := TRUE;
+            
+            nState := 0; // Cycle Complete
+        END_IF
+END_CASE
+
+// --- SAFETY/ABORT LOGIC ---
+IF bAbort THEN
+    nState := 0;
+    bArcEstablished := FALSE;
+    tMoveTimer(IN := FALSE);
+    tWeldTimer(IN := FALSE);
+    tArcDelay(IN := FALSE);
+END_IF
+]]></ST>
+    </Implementation>
+    <LineIds Name="WeldRobot">
+      <LineId Id="123" Count="36" />
+      <LineId Id="177" Count="0" />
+      <LineId Id="160" Count="13" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
