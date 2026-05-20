@@ -84,6 +84,9 @@
     <Compile Include="POUs\FX1TextList.TcTLO">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\RollerDoor3.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\RollerDoor_1.TcPOU">
       <SubType>Code</SubType>
     </Compile>
