@@ -45,6 +45,9 @@
     <Compile Include="PlcTask.TcTTO">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\Callblocks_FX1_1.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\Fixture1_Auto.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -78,22 +81,10 @@
     <Compile Include="POUs\Mode.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Mode_1.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="POUs\RollerDoor.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\FX1TextList.TcTLO">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\RollerDoor3.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\RollerDoor_1.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\RollerDoor2.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\Trunion.TcPOU">
