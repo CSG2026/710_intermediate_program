@@ -124,7 +124,7 @@ VAR_GLOBAL
 	
 	i_Reset_PB              : BOOL;
 	i_Power_On_PB           : BOOL;
-	i_Mode_Select           : INT;
+	i_Mode_Select           : BOOL;
 	
 	i_Front_Door_Up         : BOOL;
 	i_Front_Door_Down       : BOOL;

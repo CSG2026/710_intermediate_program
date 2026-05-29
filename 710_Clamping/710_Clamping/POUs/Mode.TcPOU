@@ -6,8 +6,8 @@ VAR_INPUT
 	 // --- Inputs (HMI or Physical) ---
     bPowerBtn       : BOOL;    // Main Power Toggle
     bSafetyOK       : BOOL;    // Global Safety Signal
-    nModeSelect     : INT;     // 0:Off, 1:Manual, 2:Auto
-  
+    
+    bModeSelect     : BOOL;
 END_VAR
 VAR_OUTPUT
 	
@@ -26,12 +26,19 @@ VAR
     nStatePower     : INT;     // State machine for power-up	
 	 // --- Timers ---
     tPowerTimer     : TON;     // Simulation for contactors
-	
+	nModeSelect     : INT;     // 0:Off, 1:Manual, 2:Auto
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[// 1. SAFETY INTERLOCK
 // If safety trips, everything stops immediately
+
+IF bModeSelect THEN
+	nModeSelect :=1;
+ELSE
+	nModeSelect :=0;	
+	
+END_IF
 IF NOT bSafetyOK THEN
     bPowerReady   := FALSE;
     bManualActive := FALSE;
@@ -69,11 +76,11 @@ IF bPowerReady THEN
     
     // Mode Logic
     CASE nModeSelect OF
-        1: // Manual Selected
+        0: // Manual Selected
             bManualActive := TRUE;
             bAutoActive   := FALSE;
             
-        2: // Auto Selected
+        1: // Auto Selected
             bManualActive := FALSE;
             bAutoActive   := TRUE;
             
@@ -90,7 +97,13 @@ END_IF
 ]]></ST>
     </Implementation>
     <LineIds Name="Mode">
-      <LineId Id="99" Count="56" />
+      <LineId Id="99" Count="1" />
+      <LineId Id="184" Count="0" />
+      <LineId Id="183" Count="0" />
+      <LineId Id="185" Count="0" />
+      <LineId Id="187" Count="2" />
+      <LineId Id="186" Count="0" />
+      <LineId Id="101" Count="54" />
       <LineId Id="9" Count="0" />
     </LineIds>
   </POU>
